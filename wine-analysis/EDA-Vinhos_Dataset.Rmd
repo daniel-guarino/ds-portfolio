@@ -1,0 +1,1575 @@
+---
+title: "Análise Exploratória dos Dados - Dataset Vinhos Portugueses Conceitos Estatísticos para IA"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Avaliação 02 - Conceitos Estatísticos para IA
+
+## Grupo:
+
+- Carlos Eduardo Barbosa - 335518
+- Daniel Gregoris Guarino - 335398
+- Fabio de Campos Bordin - 336263
+- Fernando Bareno Calo - 335434
+
+```{r}
+# diretório de trabalho
+getwd()
+```
+
+```{r}
+dir = 'C:/Users/Daniel Guarino/Documents/fiap/conceitos-estatisticos-para-ia/Trabalho/StartupOne/src/R/BaseWine Quality/DataSource'
+setwd(dir)
+
+data_vinhos <- read.csv("Data.csv", sep = ";", stringsAsFactors = FALSE)
+```
+
+## 2. Limpeza de dados
+
+```{r}
+# 13 variáveis + id
+# 6497 registros
+dim(data_vinhos)
+
+```
+
+```{r}
+# estrutura do dataset - variáveis string ao invés de numérico
+str(data_vinhos)
+```
+
+```{r}
+# carregar pacote dplyr
+library(dplyr)
+```
+
+```{r}
+# mudar o nome das variáveis para português usando a função mutate do pacote dplyR
+data_vinhos <- data_vinhos %>% mutate(acidez_fixa = fixedacidity) %>% mutate(acidez_volatil = volatileacidity) %>%
+    mutate(acido_citrico = citricacid) %>% mutate(acucar_residual = residualsugar) %>% 
+    mutate(cloretos = chlorides) %>% mutate(dioxido_de_enxofre_livre = freesulfurdioxide) %>% 
+    mutate(dioxido_de_enxofre_total = totalsulfurdioxide) %>% mutate(densidade = density) %>% 
+    mutate(sulfatos = sulphates ) %>% mutate(alcool = alcohol) %>% mutate(qualidade = quality) %>% 
+    mutate(vinho = Vinho)
+```
+
+```{r}
+# com a mudança das variáveis usando mutate o dataset fica com as variáveis originais em inglês mais as novas
+# em português.
+dim(data_vinhos)
+```
+
+
+```{r}
+# Para ficar apenas com as variáveis com nome em português usamos a função select do pacote dplyR armazenando 
+# em uma nova variavel data_vinhos2. Neste novo dataset não incluimos a variável id.
+data_vinhos2 <- data_vinhos %>% select(acidez_fixa, acidez_volatil, acido_citrico, acucar_residual,
+                                      cloretos, dioxido_de_enxofre_livre, dioxido_de_enxofre_total,
+                                      densidade, pH, sulfatos, alcool, qualidade, vinho)
+```
+
+```{r}
+# conferindo: 13 variáveis
+dim(data_vinhos2)
+```
+
+```{r}
+head(data_vinhos2,10)
+```
+
+
+```{r}
+# o dataset possui valores ausentes?
+is.null(data_vinhos2)
+```
+
+
+```{r}
+#Id da coluna do vinho
+##Salvo o ID da coluna de vinho para reconsiderar posteriormente nas proximas consultas
+vinhoColumnIndex = which(names(data_vinhos2) == "vinho")
+```
+
+
+```{r}
+# Função para converter de string para numeric, para isso também é necessário substituir a notação decimal com vírgula (,) para
+# ponto (.)
+toNumeric <- function(value) {
+    return(as.numeric(gsub(",", "\\.", value)))
+}
+```
+
+
+```{r}
+##Converte as variaveis de string para numeric e checagem usando o comando str
+data_vinhos2[, - vinhoColumnIndex] = apply(data_vinhos2[, - vinhoColumnIndex], 2, toNumeric)
+str(data_vinhos2)
+```
+
+
+```{r}
+# transformar as variáveis WHITE e RED (categóricas) em fator
+vinhos <- data_vinhos2[,'vinho']
+vinhos.factor <- factor(vinhos)
+data_vinhos2 <- data_vinhos2 %>% mutate(vinhos_fator = vinhos.factor)
+```
+
+
+```{r}
+# conferir a nova variável "factor"
+str(data_vinhos2)
+```
+
+## Resumo das variáveis:
+
+- `acidez_fixa`: a maioria dos ácidos presentes no vinho ou fixos ou não voláteis (não evaporaram prontamente)
+- `acidez_volatil`: a quantidade de ácido acético no vinho, que em níveis muito altos pode levar a um gosto desagradável de vinagre.
+- `acido_citrico`: encontrado em pequenas quantidades, o ácido cítrico pode adicionar “frescor” e sabor aos vinhos.
+- `acucar_residual`: a quantidade de açúcar restante depois que o processo de fermentação (em contato com a levedura, o açúcar da uva vai se transformando em álcool, ou seja, a fermentação vai ocorrendo)
+- `cloretos`: a quantidade de sal no vinho.
+- `dioxido_de_enxofre_livre`: a forma livre de SO2 existe em equilíbrio entre o SO2 molecular (como gás dissolvido) e o íon bissulfito; impede o crescimento microbiano e a oxidação do vinho. Garante condições melhores para os processos de vinificação da bebida, elimina bactérias e leveduras frágeis e indesejáveis, o que permite que apenas as melhores prossigam com o processo fermentativo. Além do mais, melhora o aroma e afina a cor da bebida
+- `dioxido_de_enxofre_total`: quantidade de formas livres e encadernadas de S02; em baixas concentrações, o SO2 é quase indetectável no vinho, mas nas concentrações de SO2 livre acima de 50 ppm, o SO2 se torna evidente no nariz e no sabor do vinho.
+- `densidade`: a densidade é próxima à da água, dependendo do percentual de álcool e teor de açúcar.
+- `pH`: descreve como o vinho é acídico ou básico numa escala de 0 (muito ácido) a 14 (muito básico); a maioria dos vinhos tem entre 3-4 na escala de pH.
+- `sulfatos`: um aditivo de vinho que pode contribuir para os níveis de gás de dióxido de enxofre (S02), que age como um antimicrobiano e antioxidante.
+- `alcool`: o teor alcoólico percentual do vinho.
+- `qualidade`: variável de saída (com base em dados sensoriais) que poderiam ser de 0 a 10 sendo zero muito ruim e 10 muito excelente.
+- `vinho`: RED (tinto) e WHITE (branco)
+
+## 3. Análise Exploratória dos Dados
+
+## Estatística Descritiva
+
+```{r}
+# resumo dos quartis
+summary(data_vinhos2)
+```
+
+
+```{r}
+# carregar biblioteca psych
+library(psych)
+```
+
+```{r}
+# resumo das medidas de posição e dispersão usando a função describe do pacote psych
+describe(data_vinhos2)
+```
+
+
+```{r}
+# verificar visualmente o que acontece com os registros que possuem teor alcoólico inferior a 8%
+# Consertar esse 04 registros em que o teor álcool é inferior a 8% multiplicando os valores por 10
+data_vinhos2 %>% select(alcool) %>% filter (alcool < 8) 
+```
+
+Inconsistência nos dados. Exemplo: temos o valor 1.1066 ao invés de 11.0066. É necessário corrigir as casa decimais desses 4 registros
+
+```{r}
+# correção dos dados multiplicando por 10 onde o teor alcoólico é inferior a 8%
+data_vinhos2$alcool[data_vinhos2$alcool < 8] <- data_vinhos2$alcool[data_vinhos2$alcool < 8] * 10 
+```
+
+
+```{r}
+# chegar que não temos mais valores de teor alcoólico inferiores a 8%
+data_vinhos2 %>% select (alcool) %>% filter (alcool < 8) 
+```
+
+Separar os datasets de WHITE e RED 
+Vinhos brancos e tintos podem ter características fisico químicas diferentes!
+
+```{r}
+# criar um dataframe somente para os vinhos brancos usando a função filter do pacote dplyR
+white <- data_vinhos2 %>% filter(vinho == 'WHITE')
+# separação foi feita corretamente!
+dim(white)
+```
+
+```{r}
+# criar um dataframe somente para os vinhos tintos novamente usando a função filter do pacote dplyR
+red <- data_vinhos2 %>% filter(vinho == 'RED')
+# separação foi feita corretamente!
+dim(red)
+```
+
+Proporção de vinhos brancos e tintos neste dataset
+
+```{r}
+total <- dim(white)[1] + dim(red)[1]
+total_white <- dim(white)[1]
+total_red <- dim(red)[1]
+white_proporcao <- total_white / total
+red_proporcao <- total_red / total
+wine_proporcao <- c(red_proporcao, white_proporcao)
+```
+
+
+```{r}
+# carregar pacote ggplot2
+library(ggplot2)
+```
+
+
+```{r}
+# plotar um count plot com os numeros de cada dataset proporções e um grafico de pizza para a proporção
+ggplot(data_vinhos2, aes(x = vinho)) + geom_bar(color= 'black', fill = 'lightblue') +
+        labs(x = 'Tipos de Vinho', y = "Contagem vinhos",title = "Quantidade de cada tipo de vinho no dataset") +
+        theme(text = element_text(size=15)) 
+```
+
+
+```{r}
+lbls <- c('Red', 'White')
+pct <- round(wine_proporcao*100,2)
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+pie(wine_proporcao, labels = lbls, radius = 1, col=c('pink', 'lightblue'), 
+    main="Proporção de Vinhos Tintos (RED) e Brancos (WHITE)") + theme(text = element_text(size=30))
+```
+
+
+
+```{r}
+# função para plotar dois bloxpots lado a lado sendo um com informações dos vinhos tintos a esquerda e brancos a direita do plot
+boxplot_plotar <- function(dataframe, variavel, nome) {
+    return(ggplot() + geom_boxplot(aes(x=vinho, y = variavel)) + 
+    labs(x = 'Tipos de Vinho', y = nome ,title = "Vinho Tinto (RED) x Vinho Branco (WHITE)") +
+    theme(text = element_text(size=17)))
+}
+```
+
+
+```{r}
+# função para exibir resumo da estatística descritiva 
+# uso do pacote moments para calculo da curtose e assimetria
+library(moments)
+describe_vinhos <- function(dataframe, name) {
+    
+    cat("Variável: ", name)
+    summary(dataframe)
+    cat("---Média:" , mean(dataframe), '---')
+    cat("Desvio Padrão:", sd(dataframe), '---')
+    cat("Mediana:", median(dataframe), '---')
+    cat("Máximo:", max(dataframe),'---')
+    cat("Mínimo:", min(dataframe),'---')
+    cat("Range:", max(dataframe)-min(dataframe), '---')
+    cat("Assimetria:", skewness(dataframe), '---')
+    cat("Curtose:", kurtosis(dataframe))
+}
+```
+
+```{r}
+# função para detectar referência de outliers
+outliers_detect <- function(dataframe, desv=3) {
+  Q1 <- quantile(dataframe, 0.25)
+  Q3 <- quantile(dataframe, 0.75)
+  IQR <- Q3 - Q1
+  max_outlier <- Q3 + desv*IQR
+  min_outlier <- Q1 - desv*IQR
+  cat('Outlier acima de: ',max_outlier, '--- ')
+  cat('Outlier abaixo de: ',min_outlier)
+  
+}
+```
+
+
+
+```{r}
+attach(data_vinhos2)
+```
+
+```{r}
+# dimensão do dataset "red" vinhos tintos
+dim(red)[1]
+```
+
+```{r}
+# dimensão do dataset "white" vinhos brancos
+dim(white)[1]
+```
+
+
+
+
+### Estatística descritiva das variáveis e estudo de outilers para vinhos tinhos e brancos {.tabset}
+
+Nesta sessão serão analisadas diferenças entre as distribuições estatísticas de cada variável através do gráfico boxplot e inferencia estatística estatística com teste t-student (que curiosamente foi desenvolvido para avaliaçaõ da qualidade da cervejaria Guiness em Dublin, na Irlanda) para comparação entre as médias das variáveis para os dois tipos de vinho. Também será avaliado a ocorrência de outliers, utilizando o critério de 3 desvios. Os outliers identificados serão removidos das amostras para que estes não interfiram nos modelos de regressão, classificação e k-means.
+
+
+#### Acidez Fixa
+
+```{r}
+boxplot_plotar(data_vinhos2, acidez_fixa, 'Acidez Fixa')
+```
+
+Estatísticas vinhos tintos:
+```{r}
+describe_vinhos(red$acidez_fixa, "Acidez Fixa")
+```
+
+Estatísticas vinhos brancos:
+```{r}
+describe_vinhos(white$acidez_fixa, "Acidez Fixa")
+```
+
+**Vinhos Tintos**
+Acidez Fixa - Outliers
+
+Valores de referência para outliers:
+```{r}
+outliers_detect(red$acidez_fixa)
+```
+
+```{r}
+# filtrar outliers acima
+red %>% select (acidez_fixa) %>% filter (acidez_fixa > 15.5)
+```
+3 registros acima e três desvios!
+
+```{r}
+# filtrar outliers abaixo
+red %>% select (acidez_fixa) %>% filter (acidez_fixa < 0.8)
+```
+Nenhum registro abaixo de três desvios
+
+```{r}
+# remover valores de acidez fixa acima de 15.5 e conferir
+red <- red %>% filter (acidez_fixa <= 15.5)
+dim(red)[1]
+```
+
+```{r}
+head(red)
+```
+
+
+
+**Vinhos Brancos**
+Acidez Fixa - Outliers
+
+```{r}
+outliers_detect(white$acidez_fixa)
+```
+
+
+```{r}
+# filtrar outliers acima
+white %>% select (acidez_fixa) %>% filter (acidez_fixa > 10.3)
+```
+4 registros encontrados acima de três desvios
+
+```{r}
+# filtrar outliers abaixo
+white %>% select (acidez_fixa) %>% filter (acidez_fixa < 3.3)
+```
+
+
+```{r}
+# remover valores de acidez fixa acima de 10.3 e conferir
+white <- white %>% filter (acidez_fixa <= 10.3)
+dim(white)[1]
+```
+
+```{r}
+head(white)
+```
+
+Comparação das médias pelo teste t-student
+
+```{r}
+t.test(red$acidez_fixa, white$acidez_fixa, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Hipótese alternativa: As médias de acidez_fixa são diferentes para vinhos tintos e brancos?
+Conclusão: No teste t-student bicaudal foi constatado com 95% de confiança que rejeitamos a hipótese nula e aceitamos a hipótese alternativa. As médias não são iguais para vinhos tintos e brancos.
+
+#### Acidez Volatil
+
+```{r}
+boxplot_plotar(data_vinhos2, acidez_volatil, 'Acidez Volatil')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$acidez_volatil, "Acidez Volatil")
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$acidez_volatil, "Acidez Volatil")
+```
+
+
+**Vinhos Tintos**
+Acidez Volatil Outliers:
+
+```{r}
+outliers_detect(red$acidez_volatil)
+```
+
+
+```{r}
+# filtrar outliers acima
+red %>% select (acidez_volatil) %>% filter (acidez_volatil > 1.39)
+```
+1 registro encontrado acima de 3 desvios
+
+Sem outliers abaixo (acidez volatil não pode ser um valor negativo)
+```{r}
+# remover outlier
+red <- red %>% filter (acidez_volatil <= 1.39)
+dim(red)[1]
+```
+
+```{r}
+head(red)
+```
+
+
+**Vinhos Brancos**
+Acidez Volatil Outliers:
+
+```{r}
+outliers_detect(white$acidez_volatil)
+```
+
+
+```{r}
+white %>% select (acidez_volatil) %>% filter (acidez_volatil > 0.65)
+```
+39 valores de acidez fixa acima de 3 desvios para os vinhos brancos.
+
+Como no caso dos vinhos tintos também não temos valores negativos para acidez fixa, portanto sem outliers abaixo da média.
+
+```{r}
+# remover outilers
+white <- white %>% filter (acidez_volatil <= 0.65)
+dim(white)[1]
+```
+
+```{r}
+head(white)
+```
+
+Comparação das médias pelo teste t-student
+```{r}
+t.test(red$acidez_volatil, white$acidez_volatil, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: A hipótese nula é rejeitada e hipótese alternativa "as médias são diferentes entre vinho tinto e branco" é aceita com 95% de significância
+
+#### Acido Citrico
+
+```{r}
+boxplot_plotar(data_vinhos2, acido_citrico, 'Acido Citrico')
+```
+
+Estatísticas Vinhos Tintos
+```{r}
+describe_vinhos(red$acido_citrico, "Acido Cítrico")
+```
+
+Estatísticas Vinhos Brancos
+```{r}
+describe_vinhos(white$acido_citrico, "Acido Cítrico")
+```
+
+**Vinhos Tintos**
+Acido Citrico - Outliers
+```{r}
+outliers_detect(red$acido_citrico)
+```
+
+
+```{r}
+# filtrando outliers acima
+red %>% select(acido_citrico) %>% filter(acido_citrico > 1.41)
+```
+Nenhum outlier para a variável ácido cítrico de vinhos tintos
+
+**Vinhos Brancos**
+
+```{r}
+outliers_detect(white$acido_citrico)
+```
+
+
+```{r}
+# filtrando outliers acima
+white %>% select(acido_citrico) %>% filter(acido_citrico > 0.75)
+```
+22 valores acima de 3 desvios para o acido cítitrico dos vinhos brancos
+
+```{r}
+# remover outliers
+white <- white %>% filter(acido_citrico <= 0.75)
+dim(white)[1]
+```
+
+Comparação das médias:
+```{r}
+t.test(red$acido_citrico, white$acido_citrico, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias são diferentes para o ácido cítrico de vinhos tintos e brancos com 95% de significancia)
+
+#### Açucar Residual
+
+```{r}
+boxplot_plotar(data_vinhos2, acucar_residual, 'Açucar Residual')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$acucar_residual, "Açucar Residual")
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$acucar_residual, "Açucar Residual")
+```
+
+**Vinhos Tintos**
+Açucar Residual - Outliers
+
+```{r}
+outliers_detect(red$acucar_residual)
+```
+
+
+```{r}
+# filtrando outliers acima
+red %>% select(acucar_residual) %>% filter(acucar_residual > 4.7)
+```
+87 registros com açucar residual superior a 3 desvios
+
+```{r}
+# remover outliers
+red <- red %>% filter(acucar_residual <= 4.7)
+dim(red)[1]
+```
+
+
+```{r}
+head(red)
+```
+
+**Vinhos Brancos**
+Açucar residual - Outliers
+
+```{r}
+outliers_detect(white$acucar_residual)
+```
+
+
+```{r}
+# filtrando outliers acima
+white %>% select(acucar_residual) %>% filter(acucar_residual > 34.5)
+```
+Nenhum registro acima de 3 desvios para o açucar residual dos vinhos brancos.
+
+Comparação das médias:
+```{r}
+t.test(red$acucar_residual, white$acucar_residual, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de açucar residual são diferentes entre vinhos tintos e brancos com 95% de significancia)
+
+#### Cloretos
+
+```{r}
+boxplot_plotar(data_vinhos2, cloretos, 'Cloretos')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$cloretos, "Cloretos")
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$cloretos, "Cloretos")
+```
+
+**Vinhos Tintos**
+Cloretos - Outliers
+
+```{r}
+outliers_detect(red$cloretos)
+```
+
+
+```{r}
+# filtrando outliers acima
+red %>% select(cloretos) %>% filter(cloretos > 0.15)
+```
+61 registros de cloretos acima de 3 desvios
+
+```{r}
+# filtrando outliers abaixo
+red %>% select(cloretos) %>% filter(cloretos < 0.01)
+```
+
+
+```{r}
+# removendo os outliers
+red <- red %>% filter(cloretos <= 0.15)
+dim(red)[1]
+```
+
+
+```{r}
+head(red)
+```
+
+
+**Vinhos Brancos**
+Cloretos - Outliers
+
+```{r}
+outliers_detect(white$cloretos)
+```
+
+
+```{r}
+# filtrando outliers acima
+white %>% select(cloretos) %>% filter(cloretos > 0.092)
+```
+122 registros de cloretos acima de 3 desvios
+
+```{r}
+# removendo outliers
+white <- white %>% filter(cloretos <= 0.092)
+dim(white)[1]
+```
+
+
+```{r}
+head(white)
+```
+
+Comparação das médias:
+
+```{r}
+t.test(red$cloretos, white$cloretos, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de cloretos entre vinhos tintos e brancos é diferente com 95% de significancia)
+
+#### Dioxido de Enxofre Livre
+
+```{r}
+boxplot_plotar(data_vinhos2, dioxido_de_enxofre_livre , 'Dioxido de Enxofre Livre')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$dioxido_de_enxofre_livre, "Dioxido de Enxofre Livre")
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$dioxido_de_enxofre_livre, "Dioxido de Enxofre Livre")
+```
+
+**Vinhos Tintos**
+Dioxido de Enxofre - Outliers
+
+```{r}
+outliers_detect(red$dioxido_de_enxofre_livre)
+```
+
+
+```{r}
+red %>% select(dioxido_de_enxofre_livre) %>% filter(dioxido_de_enxofre_livre > 60)
+```
+Sem registros acima de 3 desvios para dioxido de enxofre livre dos vinhos tintos
+
+**Vinhos Tintos**
+Dioxido de Enxofre Livre - Outliers
+
+```{r}
+outliers_detect(white$dioxido_de_enxofre_livre)
+```
+
+
+```{r}
+white %>% select(dioxido_de_enxofre_livre) %>% filter(dioxido_de_enxofre_livre > 115)
+```
+8 registros de dioxido de enxofre livre acima de 3 desvios para vinhos tintos
+
+```{r}
+# remover outliers
+white <- white %>% filter(dioxido_de_enxofre_livre <= 115)
+dim(white)[1]
+```
+
+
+```{r}
+head(white)
+```
+
+Comparação das médias
+
+```{r}
+t.test(red$dioxido_de_enxofre_livre, white$dioxido_de_enxofre_livre, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de dioxido de enxofre livre entre vinhos tintos e brancos é diferente com 95% de significancia)
+
+#### Dioxido de Enxofre Total
+
+
+```{r}
+boxplot_plotar(data_vinhos2, dioxido_de_enxofre_total, 'Dioxido de Enxofre Total')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$dioxido_de_enxofre_total, "Dioxido de Enxofre Total")
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$dioxido_de_enxofre_total, "Dioxido de Enxofre Total")
+```
+
+**Vinhos Tintos**
+Dioxido de Enxofre Total - Outliers
+
+```{r}
+outliers_detect(red$dioxido_de_enxofre_total)
+```
+
+
+```{r}
+# filtrando valores acima
+red %>% select(dioxido_de_enxofre_total) %>% filter(dioxido_de_enxofre_total > 174)
+```
+Nenhum outlier para dioxido de enxofre livre para os vinhos tintos
+
+**Vinhos Brancos**
+Dioxido de Enxofre Total - Outliers
+
+```{r}
+outliers_detect(white$dioxido_de_enxofre_total)
+```
+
+
+```{r}
+# filtrando outliers acima
+white %>% select(dioxido_de_enxofre_total) %>% filter(dioxido_de_enxofre_total > 344)
+```
+1 registro acima de 3 desvios para dioxido de enxofre total dos vinhos brancos
+
+```{r}
+# removendo o outlier
+white <- white %>% filter(dioxido_de_enxofre_total <= 344)
+dim(white)[1]
+```
+
+```{r}
+head(white)
+```
+
+Comparação das médias:
+
+```{r}
+t.test(red$dioxido_de_enxofre_total, white$dioxido_de_enxofre_total, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de dioxido de enxofre total entre vinhos tintos e brancos é diferente com 95% de significancia)
+
+
+#### Densidade
+
+```{r}
+boxplot_plotar(data_vinhos, densidade, 'Densidade')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$densidade, 'Densidade')
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$densidade, 'Densidade')
+```
+
+Conclusão: Valor de densidade próximo ao da água para os dois tipos de vinho. Não usar esta variável para geração de modelos. 
+
+#### pH
+
+```{r}
+boxplot_plotar(data_vinhos2, pH, 'pH')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$pH, "pH")
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$pH, "pH")
+```
+
+**Vinhos Tintos**
+pH - Outliers
+
+```{r}
+outliers_detect(red$pH)
+```
+
+```{r}
+# filtrando outliers acima
+red %>% select(pH) %>% filter(pH > 3.98)
+```
+2 registros de pH acima de 3 desvios para vinhos tintos
+
+```{r}
+# filtrando outliers abaixo
+red %>% select(pH) %>% filter(pH < 2.65)
+```
+
+```{r}
+# removendo outliers
+red <- red %>% filter(pH <= 3.98)
+dim(red)[1]
+```
+
+
+```{r}
+head(red)
+```
+
+
+**Vinhos Brancos**
+pH - Outliers
+
+```{r}
+outliers_detect(white$pH)
+```
+
+
+```{r}
+# filtrando outliers acima
+white %>% select(pH) %>% filter(pH > 3.85)
+```
+
+
+```{r}
+# filtrando outliers abaixo
+white %>% select(pH) %>% filter(pH < 2.52)
+```
+sem outliers para o ph de vinhos brancos
+
+Comparação das Médias:
+```{r}
+t.test(red$pH, white$pH, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de pH entre vinhos tintos e brancos é diferente com 95% de significancia)
+
+
+#### Sulfatos
+
+```{r}
+boxplot_plotar(data_vinhos2, sulfatos, 'Sulfatos')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$sulfatos, 'Sulfatos')
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$sulfatos, 'Sulfatos')
+```
+
+**Vinhos Tintos**
+Sulfatos - Outliers
+
+```{r}
+outliers_detect(red$sulfatos)
+```
+
+
+```{r}
+# filtrando outliers acima
+red %>% select(sulfatos) %>% filter(sulfatos > 1.23)
+```
+8 registros de sulfatos acima de 3 desvios para vinhos tintos
+
+```{r}
+# filtrando outliers abaixo
+red %>% select(sulfatos) %>% filter(sulfatos < 0.04)
+```
+
+```{r}
+# removendo outliers
+red <- red %>% filter(sulfatos <= 1.23)
+dim(red)[1]
+```
+
+
+```{r}
+head(red)
+```
+
+**Vinhos Brancos**
+Sulfatos - Outliers
+
+```{r}
+outliers_detect(white$sulfatos)
+```
+
+
+```{r}
+# filtrando outliers acima
+white %>% select(sulfatos) %>% filter(sulfatos > 0.97)
+```
+10 registros acima de 3 desvios para os sulfatos dos vinhos brancos
+
+```{r}
+# removendo outliers
+white <- white %>% filter(sulfatos <= 0.97)
+dim(white)[1]
+```
+
+
+```{r}
+head(white)
+```
+
+Comparação das médias:
+```{r}
+t.test(red$sulfatos, white$sulfatos, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de sulfatos entre vinhos tintos e brancos é diferente com 95% de significancia)
+
+#### Álcool
+
+
+```{r}
+boxplot_plotar(data_vinhos2, alcool, 'Álcool')
+```
+
+Estatísticas Vinhos Tintos:
+```{r}
+describe_vinhos(red$alcool, 'Álcool')
+```
+
+Estatísticas Vinhos Brancos:
+```{r}
+describe_vinhos(white$alcool, 'Álcool')
+```
+
+**Vinhos Tintos**
+Alcool - Outliers
+
+```{r}
+outliers_detect(red$alcool)
+```
+
+
+```{r}
+# filtrando outliers acima
+red %>% select(alcool) %>% filter (alcool > 15.9)
+```
+Nenhum valor outlier para álcool dos vinhos tintos. Lembrando que foi consertado uma inconsistência nos dados mais acima neste relatório
+
+**Vinhos Brancos**
+Alcool - Outliers
+
+```{r}
+outliers_detect(white$alcool)
+```
+
+
+```{r}
+white %>% select(alcool) %>% filter (alcool > 17.1)
+```
+
+Comparação das Médias:
+```{r}
+t.test(red$alcool, white$alcool, paired = FALSE, conf.level = 0.95, alternative = "two.sided")
+```
+
+Conclusão: Rejeitamos a hipótese nula e aceitamos a hipótese alternativa (as médias de teor alcóolico entre vinhos tintos e brancos é diferente com 95% de significancia)
+
+#### Qualidade
+
+```{r}
+boxplot_plotar(data_vinhos2, qualidade, 'Qualidade')
+```
+
+Estatística Vinhos Tintos:
+```{r}
+describe_vinhos(red$qualidade, 'Qualidade')
+```
+
+Estatística Vinhos Brancos:
+```{r}
+describe_vinhos(white$qualidade, 'Qualidade')
+```
+
+A variável qualidade é a variável alvo para os modelos de regressão linear multipla e regressão logística, portanto, não será realizado o estudo de outliers para esta variável para nenhum dos vinhos
+
+Aqui queremos testar se podemos afirmar que: A média da qualidade dos vinhos tintos é superior a dos vinhos brancos neste dataset?
+
+```{r}
+t.test(red$qualidade, white$qualidade, paired = FALSE, conf.level = 0.95, alternative = "greater")
+```
+
+Conclusao: **Falhamos em rejeitar a hipótese nula**. Não podemos afirmar **com 95% de significancia** que a média dos vinhos tintos é superior a média dos vinhos brancos.
+
+
+### 4. Correlação entre as variáveis {.tabset}
+```{r}
+library(GGally)
+```
+
+
+#### Vinhos Tintos
+```{r}
+ggcorr(red, name = "corr", label = TRUE) +
+  theme(legend.position = "left") +
+  labs(title = "Vinho Tinto - Correlações") +
+  theme(plot.title = element_text(face = 'bold', color = 'black', hjust = 0.1, size = 15))
+```
+
+
+
+#### Vinhos Brancos
+```{r}
+ggcorr(white, name = "corr", label = TRUE) +
+  theme(legend.position = "left") +
+  labs(title = "Vinho White - Correlações") +
+  theme(plot.title = element_text(face = 'bold', color = 'black', hjust = 0.1, size = 15))
+```
+
+
+
+### 5. Regressão Linear Multipla e Árvore de Regressão {.tabset}
+```{r}
+# carregar pacotes para esta sessão da EDA
+library(car)
+library(rpart)
+library(rpart.plot)
+```
+
+
+#### Vinhos Tintos
+```{r}
+modelo_reg_Red <- lm(red$qualidade ~ red$acidez_fixa + red$acidez_volatil + red$acido_citrico+ red$acucar_residual + red$cloretos + red$dioxido_de_enxofre_livre + red$dioxido_de_enxofre_total + red$pH +red$sulfatos + red$alcool)
+summary(modelo_reg_Red)
+```
+Ao rodar o modelo de regressão multipla para os vinhos tintos verificamos que as seguintes variáveis falharam ao predizer a variável qualidade por terem seu p-value acima de 5%, valor de referência para a inferência deste modelo:
+
+- ´acidez fixa´
+- ´acido citrico´
+- ´açucar residual´
+- ´dioxido de enxofre livre´
+
+Vamos rodar o modelo novamente agora sem as variáveis citadas acima
+```{r}
+modelo_reg_Red_1 <- lm(red$qualidade ~ red$acidez_volatil + red$cloretos + red$dioxido_de_enxofre_total + red$pH +red$sulfatos + red$alcool)
+summary(modelo_reg_Red_1)
+```
+
+Assim, obtemos um modelo com R² de 0.38 com as variáveis validadas. Embora a variável **dioxido de enxofre total** tenha sido validada pelo p-value, seu coeficiente é muito baixo (-0.0021), portanto vamos rodar o modelo novamente sem ela:
+
+```{r}
+modelo_reg_Red_2 <- lm(red$qualidade ~ red$acidez_volatil + red$cloretos + red$pH +red$sulfatos + red$alcool)
+summary(modelo_reg_Red_2)
+```
+
+Agora vamos fazer a análise de variancia (ANOVA) para liberar o modelo:
+```{r}
+anova(modelo_reg_Red_2)
+```
+
+Neste teste, temos a variável ´pH´ não foi aceita no teste F (p-value = 0.83 > 0.05). Sendo assim, vamos rodar o modelo linear multiplo sem a variável pH:
+```{r}
+modelo_reg_Red_3 <- lm(red$qualidade ~ red$acidez_volatil + red$cloretos + red$sulfatos + red$alcool)
+summary(modelo_reg_Red_3)
+```
+```{r}
+anova(modelo_reg_Red_3)
+```
+
+Agora sim aceitamos o modelo de regressão múltipla Qualidade = -1.06 x Acidez_Volatil -2.47 x Cloretos + 1.28 x Sulfatos + 0.28 x Alcool + 2.58 
+
+Calculo do erro Quadratico Médio da média - Para comparar com o modelo de árvore de regressão que será feito em seguida:
+```{r}
+# estimar variáveis
+vif(modelo_reg_Red_3)
+Val_pred <- predict(modelo_reg_Red_3,interval = "prediction", level = 0.95) 
+head(Val_pred)
+```
+
+
+```{r}
+# intervalo de confianca - grafico para media
+fit <- Val_pred[,1] # valores preditos
+```
+
+
+```{r}
+# Erro Quadratico Médio da média para comparar modelos (não para avaliar a qualidade do modelo)
+mse <- mean((red$qualidade - fit)^2)
+sqrt(mse)
+```
+
+```{r}
+erro_usando_media <- mean((red$qualidade - mean(red$qualidade))^2)
+sqrt(erro_usando_media)
+```
+
+Agora vamos analisar a distribuição dos resíduos do modelo gerado através do qqplot e teste de Shapiro
+
+```{r}
+qqnorm(residuals(modelo_reg_Red_3), ylab="Resíduos",xlab="Quantis téricos",main="")
+qqline(residuals(modelo_reg_Red_3))
+```
+
+```{r}
+#
+
+shapiro.test(residuals(modelo_reg_Red_3))
+```
+
+No Teste de Normalidade de Shapiro Wilk, se o Pvalue do teste é pequeno, rejeita-se a hipótese de normalidade dos resíduos e, por consequência, conclui-se que os erros não são normalmente distribuídos.Ao contrário dos demais testes de hipóteses neste caso de Pvalue < alpha, rejeita-se H0!!! É o que acontece para os resíduos do modelo de regressão linear dos vinhos tintos.
+
+Árvore de Regressão:
+```{r}
+modelo_Valor_tree <- rpart (qualidade ~ acidez_volatil + cloretos + sulfatos + alcool, data=red, 
+                     cp = 0.005,minsplit = 15,maxdepth=10)
+
+rpart.plot(modelo_Valor_tree, type=4, extra=1, under=FALSE, clip.right.labs=TRUE,
+           fallen.leaves=FALSE,   digits=2, varlen=-10, faclen=20,
+           cex=0.4, tweak=1.7,
+           compress=TRUE, 
+           snip=FALSE)
+```
+
+```{r}
+Val_pred_tree <- predict(modelo_Valor_tree,interval = "prediction", level = 0.95) 
+mse_tree <- mean((red$qualidade - Val_pred_tree)^2)
+sqrt(mse_tree)
+```
+
+```{r}
+erro_usando_media <- mean((red$qualidade - mean(red$qualidade))^2)
+sqrt(erro_usando_media)
+```
+
+Conclusão:
+
+#### Vinhos Brancos
+
+```{r}
+modelo_reg_White <- lm(white$qualidade ~ white$acidez_fixa + white$acidez_volatil + white$acido_citrico+ white$acucar_residual + white$cloretos + white$dioxido_de_enxofre_livre + white$dioxido_de_enxofre_total + white$pH + white$sulfatos + white$alcool)
+summary(modelo_reg_White)
+```
+
+Ao rodar o modelo de regressão multipla para os vinhos brancos verificamos que as seguintes variáveis falharam ao predizer a variável qualidade por terem seu p-value acima de 5%, valor de referência para a inferência deste modelo:
+
+- ´acido citrico´
+- ´dioxido de enxofre total´
+
+Vamos rodar o modelo novamente agora sem as variáveis citadas acima
+
+```{r}
+modelo_reg_White_1 <- lm(white$qualidade ~ white$acidez_fixa + white$acidez_volatil + white$acucar_residual + white$cloretos + white$dioxido_de_enxofre_livre + white$pH + white$sulfatos + white$alcool)
+summary(modelo_reg_White_1)
+```
+
+Assim, obtemos um modelo com R² de 0.27 com as variáveis validadas. Embora as variáveis **acidez fixa, açucar residual e dioxido de enxofre livre** tenham sido validadas pelo p-value, possuem coeficientes muito baixos (0.02 e 0.00558), portanto vamos rodar o modelo novamente sem elas:
+```{r}
+modelo_reg_White_2 <- lm(white$qualidade ~ white$acidez_volatil +white$cloretos + white$pH + white$sulfatos + white$alcool)
+summary(modelo_reg_White_2)
+```
+
+
+Agora não temos mais variáveis com p-value abaixo de 5% ou coeficientes muito baixos, porém nosso R² diminuiu para 0.23. Vamos executar a validação final do modelo para os vinhos brancos usando ANOVA:
+```{r}
+anova(modelo_reg_White_2)
+```
+
+Todas as variáveis passaram no teste F. 
+Modelo Qualidade = -1.90 x Acidez Voltail -5.47 x Cloretos + 0.17 x pH + 0.475 x Sulfato + 0.29 Alcool + 2.72
+Calculo do erro Quadratico Médio da média - Para comparar com o modelo de árvore de regressão que será feito em seguida:
+```{r}
+# estimar variáveis
+vif(modelo_reg_White_2)
+Val_pred <- predict(modelo_reg_White_2,interval = "prediction", level = 0.95) 
+head(Val_pred)
+```
+
+
+```{r}
+# intervalo de confianca - grafico para media
+fit <- Val_pred[,1] # valores preditos
+```
+
+
+```{r}
+# Erro Quadratico Médio da média para comparar modelos (não para avaliar a qualidade do modelo)
+mse <- mean((white$qualidade - fit)^2)
+sqrt(mse)
+```
+
+```{r}
+erro_usando_media <- mean((red$qualidade - mean(red$qualidade))^2)
+sqrt(erro_usando_media)
+```
+
+Agora vamos analisar a distribuição dos resíduos do modelo gerado através do qqplot e teste de Shapiro
+
+```{r}
+qqnorm(residuals(modelo_reg_White_2), ylab="Resíduos",xlab="Quantis téricos",main="")
+qqline(residuals(modelo_reg_White_2))
+```
+
+```{r}
+# teste de shapiro
+shapiro.test(residuals(modelo_reg_White_2))
+```
+
+No Teste de Normalidade de Shapiro Wilk, se o Pvalue do teste é pequeno, rejeita-se a hipótese de normalidade dos resíduos e, por consequência, conclui-se que os erros não são normalmente distribuídos.Ao contrário dos demais testes de hipóteses neste caso de Pvalue < alpha, rejeita-se H0!!! É o que acontece para os resíduos do modelo de regressão linear dos vinhos brancos.
+
+Árvore de Regressão:
+```{r}
+modelo_Valor_tree <- rpart (qualidade ~ acidez_volatil + cloretos + pH +sulfatos + alcool, data=white, 
+                     cp = 0.005,minsplit = 15,maxdepth=10)
+
+rpart.plot(modelo_Valor_tree, type=4, extra=1, under=FALSE, clip.right.labs=TRUE,
+           fallen.leaves=FALSE,   digits=2, varlen=-10, faclen=20,
+           cex=0.4, tweak=1.7,
+           compress=TRUE, 
+           snip=FALSE)
+```
+
+```{r}
+Val_pred_tree <- predict(modelo_Valor_tree,interval = "prediction", level = 0.95) 
+mse_tree <- mean((white$qualidade - Val_pred_tree)^2)
+sqrt(mse_tree)
+```
+```{r}
+erro_usando_media <- mean((white$qualidade - mean(white$qualidade))^2)
+sqrt(erro_usando_media)
+```
+
+Conclusão:
+
+### 6. Regressão Logística e Árvore de Decisão {.tabset}
+```{r}
+# carregando pacotes necessários para a regressão logística
+library(caret)
+library(mlbench)
+library(rattle)
+library(e1071)
+```
+
+
+
+#### Vinhos Tintos
+
+
+```{r}
+# criando nova variável binária para classificação da qualidade dos vinhos, onde 0 - Ruim, para os vinhos com qualidade inferior a 6 e 1- Bom para vinhos com qualidade igual ou superior a 6
+red$qualy[red$qualidade < 6] = 0
+red$qualy[red$qualidade >= 6] = 1 
+str(red)
+```
+
+```{r}
+red$qualy <- factor(red$qualy)
+```
+
+
+```{r}
+#separação dos dados de treino e teste
+#Divisao do banco de dados completo em treinamento e teste
+#definir % de casos de treino
+
+
+# amostra de casos de treino aleatória
+set.seed(109)
+
+# Divide o dataset em 80% para treino e 20% para teste
+trainIndex <- createDataPartition(red$qualy, p=0.80, list=FALSE)
+trainData <- red[trainIndex,]
+testData <- red[-trainIndex,]                 
+
+print('Proporção de Vinhos Ruins e Bons:')
+print('Dados de Treino:')
+prop.table(table(trainData$qualy))
+print('Dados de Teste: ')
+prop.table(table(testData$qualy))
+```
+
+```{r}
+# informações dos Parâmetros do Modelo
+## Usa rpart para decision tree
+attach(trainData) 
+modelo_tree_1 <- rpart(qualy ~ acidez_fixa + acidez_volatil + acido_citrico + acucar_residual + cloretos + dioxido_de_enxofre_livre + dioxido_de_enxofre_total +pH + sulfatos + alcool, data=trainData, control = rpart.control(cp = 0.01))
+# Faz o Gráfico
+rpart.plot(modelo_tree_1, type=4, under=FALSE, clip.right.labs=TRUE,
+           fallen.leaves=TRUE, digits=2, varlen=-3, faclen=12,
+           cex=NULL, tweak=2,
+           compress=TRUE,
+           snip=FALSE)
+```
+
+```{r}
+summary(modelo_tree_1) 
+```
+
+
+```{r}
+# aplica o modelo no arquivo teste
+
+## Predict com tipo 'classe' retorna se o vinho é bom ou não
+red.previsao <- predict(modelo_tree_1, testData ,type = 'class')
+```
+
+
+```{r}
+red.matriz.confusao_tree <- table(testData$qualy, red.previsao)
+red.matriz.confusao_tree
+
+diagonal <- diag(red.matriz.confusao_tree)
+Acc_tree_teste <- sum(diagonal)/sum(red.matriz.confusao_tree)
+print(Acc_tree_teste*100, digits=5)
+```
+
+```{r}
+#plotar regra do modelo preditivo
+
+fancyRpartPlot(modelo_tree_1, cex=0.60)
+```
+
+
+Regressão Logística
+
+```{r}
+Mod_Log_red <- glm(qualidade ~ acidez_fixa + acidez_volatil + acido_citrico + acucar_residual + cloretos + dioxido_de_enxofre_livre + dioxido_de_enxofre_total +pH + sulfatos + alcool, data = trainData)
+
+summary(Mod_Log_red)
+```
+
+Pelo p-values, descartamos as variáveis acidez fixa, acido critrico, açucar residual e cloretos. Por ter um coeficiente muito baixo no modelo também descartamos as variáveis dioxido de enxofre livre e dioxido de enxofre total.
+
+```{r}
+Mod_Log_red_1 <- glm(qualidade ~ acidez_volatil + pH + sulfatos + alcool, data = trainData)
+
+summary(Mod_Log_red_1)
+```
+
+
+
+```{r}
+red.previsao <- predict.glm(Mod_Log_red_1, newdata = testData ,type = 'response')
+red.previsao_cut <- as.factor(ifelse(red.previsao > 6, 1, 0))
+confusionMatrix(red.previsao_cut, testData$qualy)
+```
+
+#### Vinhos Brancos
+
+```{r}
+# criando nova variável binária para classificação da qualidade dos vinhos, onde 0 - Ruim, para os vinhos com qualidade inferior a 6 e 1- Bom para vinhos com qualidade igual ou superior a 6
+white$qualy[white$qualidade < 6] = 0
+white$qualy[white$qualidade >= 6] = 1 
+str(white)
+```
+
+```{r}
+white$qualy <- factor(white$qualy)
+```
+
+
+```{r}
+#separação dos dados de treino e teste
+#Divisao do banco de dados completo em treinamento e teste
+#definir % de casos de treino
+
+
+# amostra de casos de treino aleatória
+set.seed(109)
+
+# Divide o dataset em 80% para treino e 20% para teste
+trainIndex <- createDataPartition(white$qualy, p=0.80, list=FALSE)
+trainData <- white[trainIndex,]
+testData <- white[-trainIndex,]                 
+
+print('Proporção de Vinhos Ruins e Bons:')
+print('Dados de Treino:')
+prop.table(table(trainData$qualy))
+print('Dados de Teste: ')
+prop.table(table(testData$qualy))
+```
+
+```{r}
+# informações dos Parâmetros do Modelo
+## Usa rpart para decision tree
+attach(trainData) 
+modelo_tree_1 <- rpart(qualy ~ acidez_fixa + acidez_volatil + acido_citrico + acucar_residual + cloretos + dioxido_de_enxofre_livre + dioxido_de_enxofre_total +pH + sulfatos + alcool, data=trainData, control = rpart.control(cp = 0.01))
+# Faz o Gráfico
+rpart.plot(modelo_tree_1, type=4, under=FALSE, clip.right.labs=TRUE,
+           fallen.leaves=TRUE, digits=2, varlen=-3, faclen=12,
+           cex=NULL, tweak=2,
+           compress=TRUE,
+           snip=FALSE)
+```
+
+```{r}
+summary(modelo_tree_1) 
+```
+
+```{r}
+# aplica o modelo no arquivo teste
+
+## Predict com tipo 'classe' retorna se o vinho é bom ou não
+white.previsao <- predict(modelo_tree_1, testData ,type = 'class')
+```
+
+
+```{r}
+white.matriz.confusao_tree <- table(testData$qualy, white.previsao)
+white.matriz.confusao_tree
+
+diagonal <- diag(white.matriz.confusao_tree)
+Acc_tree_teste <- sum(diagonal)/sum(white.matriz.confusao_tree)
+print(Acc_tree_teste*100, digits=5)
+```
+
+```{r}
+#plotar regra do modelo preditivo
+
+fancyRpartPlot(modelo_tree_1, cex=0.60)
+```
+
+
+Regressão Logística
+
+```{r}
+Mod_Log_white <- glm(qualidade ~ acidez_fixa + acidez_volatil + acido_citrico + acucar_residual + cloretos + dioxido_de_enxofre_livre + dioxido_de_enxofre_total +pH + sulfatos + alcool, data = trainData)
+
+summary(Mod_Log_white)
+```
+
+Pelo p-value descartamos as variaveis acidez fixa, acido citrico, açucar residual, cloretos e pelo coeficiente muito baixo descartamos as variáveis dioxido de enxofre livre e dioxido de enxofre total.
+
+```{r}
+Mod_Log_white_1 <- glm(qualidade ~ acidez_fixa + acidez_volatil + acido_citrico + acucar_residual + cloretos + dioxido_de_enxofre_livre + dioxido_de_enxofre_total +pH + sulfatos + alcool, data = trainData)
+
+summary(Mod_Log_white_1)
+```
+
+
+
+```{r}
+white.previsao <- predict.glm(Mod_Log_white_1, newdata = testData ,type = 'response')
+white.previsao_cut <- as.factor(ifelse(white.previsao > 6, 1, 0))
+confusionMatrix(white.previsao_cut, testData$qualy)
+```
+
+
+### Métodos Não Supervisionados 
+
+Com o intuito de avaliar a importação de **vinhos brancos** será feita uma análise utilizando métodos não supervisionados. 
+#### Vinhos Brancos
+
+##### PCA
+
+```{r}
+str(white[1:11])
+```
+
+
+```{r}
+#escala log dos dados somente com as variáveis numéricas (sem incluir a variável target "qualidade")
+white_new <- white[1:11]
+white_scale <- scale(white_new)
+head(white_scale)
+```
+
+
+```{r}
+summary(white_scale)
+```
+
+
+```{r}
+# PCA
+white_pca <- prcomp(white[1:11], scale = TRUE)
+summary(white_pca)
+```
+
+```{r}
+plot(1:11, white_pca$sdev^2, type = 'b', xlab = 'Analise dos Componentes Principais')
+```
+
+Utilizar 3 clusters para visualização dos Clusters
+
+
+```{r}
+# k-means
+set.seed(231)
+clusters <- kmeans(white[9:10], 3)
+clusters$size
+```
+
+```{r}
+# entidades dentro de cada cluster
+centres <- clusters$centers
+centres
+```
+
+```{r}
+plot(white[11:8], col =  clusters$cluster, pch = 21)
+points(clusters$centers[11:1], col = "BLUE", pch = 7, cex = 3.5)
+```
+
+```{r}
+plot(white[8:5], col =  clusters$cluster, pch = 21)
+points(clusters$centers[8:5], col = "BLUE", pch = 7, cex = 3.5)
+```
+
+```{r}
+plot(white[5:1], col =  clusters$cluster, pch = 21)
+points(clusters$centers[5:1], col = "BLUE", pch = 7, cex = 3.5)
+```
+
+Conclusão:
+```{r}
+plot(white[10:9], col =  clusters$cluster, pch = 21)
+points(clusters$centers[10:9], col = "BLUE", pch = 7, cex = 3.5)
+```
+
+Analisando todos os gráficos de kmeans em duas dimensões combinando as variáveis do modelo obtemos uma fronteira interessante entres os clusters do modelo gerado com as variáveis sulfatos e pH (que não nos disse muito para os modelos de regressão multipla e regressão logística). Juntando com a análise dos modelos supervisionados sugerimos a importação de vinhos com o pH o mais alto possível (menor acidez) e menor quantidade de sulfatos, o que representa o cluster de cor verde no plot do kmeans entre as duas variáveis. 
+
+
+### Conclusão Final
+
+Comparando os modelos de regressão linear multipla e árvore de regressão obtemos:
+
+- `Vinhos Tintos`: Árvore de regressão se saiu melhor com o menor erro quadrático médio  (0.59) contra o modelo de regressao multipla (0.63)
+
+- `Vinhos Brancos`: Novamente a árvore de regressão se saiu melhor contra o modelo de regressão linear, mas por uma margem bastante apertada (0.74 contra 0.76)
+
+Ambos modelos de regressão multipla tiveram R² muito baixos (0.38 para vinhos tintos e 0.23 para os vinhos brancos), embora aprovados pelo ANOVA.
+
+Modelo de regressão logistica:
+
+Estes modelos acertaram mais ao predizer que o vinho era ruim (qualidade inferior a 6), com 92% de precisão para os vinhos tintos e 84% de precisão nos vinhos brancos enquanto para predizer se os vinhos são bons (qualidade igual ou superior a 6), com a precisão de 44% para os vinhos tintos e 56% para os vinhos brancos. 
+
