@@ -23,6 +23,8 @@ This repository contains my data science projects, some for my post graduate cou
 
 - [Time Series Decompose](https://github.com/daniel-guarino/ds-portfolio/blob/main/machine-learning/time-series/Time_Series_Alura.ipynb): Decompose time series and generate new features in order to analyse sales behaviour for three different datasets. For this it was used Pandas, Matplotlib and Statsmodels Python libraries.
 
+- [Wrangling and Analyse Twitter Data](https://github.com/daniel-guarino/project04-wrangling-and-analyze-data/blob/master/wrangle_act.ipynb): Gather data from  different sources (Twitter API, csv file), assess and clean dirty data and get some data insights using data visualization.
+
 ### Machine Learning
 
 - [Credit Analysis using GCP](https://github.com/daniel-guarino/ds-portfolio/blob/main/machine-learning/credit-analysis-GCP/C%C3%B3pia_de_Concess%C3%A3o_de_Cr%C3%A9dito_com_Machine_Learning.ipynb): A simple classification model using Google Cloud Computing with Docker Container and Postgree as database architeture (the GCP architeture repository can be found in this link: https://github.com/elthonf/plataformas-cognitivas-docker). We access a machine learning model served as an API and then can evaluate if the customer has a hight probability to default and a conclusion if we must loan some money to this customer or not.
@@ -35,7 +37,7 @@ This repository contains my data science projects, some for my post graduate cou
 
 - [Recommender System](https://github.com/daniel-guarino/ds-portfolio/blob/main/recommender-algorithm/Sistema_de_Recomenda%C3%A7%C3%A3o_de_Filmes_Alura.ipynb): Movies recommender system made without Scikit Learn, just using numpy.  
 
-- [ENEM 2017 score prediction](https://github.com/daniel-guarino/Projeto_Formacao_Machine_Learning/blob/master/Forma%C3%A7%C3%A3o_Machine_Learning_Projeto_Alura.ipynb): ENEM is a pre college test exam for brazilian students (like SAT). In this project i was necessary to create predictions of the total score based on the score of 5 subjects. Later it was also implemented a classification model in order to predict if the student is in the highest 25% scores.
+- [ENEM 2017 score prediction](https://github.com/daniel-guarino/Projeto_Formacao_Machine_Learning/blob/master/Forma%C3%A7%C3%A3o_Machine_Learning_Projeto_Alura.ipynb): ENEM is a pre college test exam for brazilian students (like SAT). In this project was necessary to create predictions of the total score based on the score of 5 subjects. Later it was also implemented a classification model in order to predict if the student is in the highest 25% scores.
 
 ### Computer Vision using deep learning
 
