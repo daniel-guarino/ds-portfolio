@@ -1,6 +1,6 @@
 # Personal Data Science Portfolio
 
-This repository contains my data science projects, some for my post graduate course, some for online courses like Udacity Data Analyst or Alura short courses, others were made for my self learning using some Kaggle problem. Most of the notebooks were made in Python language using Jupyter Notebook, just one was made in R using the R Markdown Tool.
+This repository contains my data science projects, some for my post graduate course, some for online courses like Udacity Data Analyst or Alura short courses, others were made for my self learning using some Kaggle problems. Most of the notebooks were made in Python programming language using Jupyter Notebook, just one was made in R using the R Markdown Tool.
 
 ## Repositories by subject:
 
@@ -34,6 +34,8 @@ This repository contains my data science projects, some for my post graduate cou
 - [Demand Forecasting](https://github.com/daniel-guarino/ds-portfolio/blob/main/machine-learning/time-series/Previsao_demanda_ML_MarioFilho.ipynb): A self leraning study during a youtube class by the famous brazilian data scientist Mario Filho. The notebook was generate at the same time I watched the class
 
 - [Recommender System](https://github.com/daniel-guarino/ds-portfolio/blob/main/recommender-algorithm/Sistema_de_Recomenda%C3%A7%C3%A3o_de_Filmes_Alura.ipynb): Movies recommender system made without Scikit Learn, just using numpy.  
+
+- [ENEM 2017 score prediction](https://github.com/daniel-guarino/Projeto_Formacao_Machine_Learning/blob/master/Forma%C3%A7%C3%A3o_Machine_Learning_Projeto_Alura.ipynb): ENEM is a pre college test exam for brazilian students (like SAT). In this project i was necessary to create predictions of the total score based on the score of 5 subjects. Later it was also implemented a classification model in order to predict if the student is in the highest 25% scores.
 
 ### Computer Vision using deep learning
 
